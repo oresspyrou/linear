@@ -15,4 +15,5 @@ dependencies = [
     "scikit-learn>=1.8.0",
     "seaborn>=0.13.2",
     "types-pyyaml>=6.0.12.20250915",
+    "xgboost>=3.1.2",
 ]
