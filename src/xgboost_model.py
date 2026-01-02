@@ -84,8 +84,15 @@ def train_model() -> None:
         empty_count = len(df.loc[df[col] == ''])
         if empty_count > 0:
             logger.warning(f"Column '{col}' has {empty_count} empty strings.")
+
             df.loc[df[col] == '', col] = 0
             logger.info(f"Replaced empty strings in column '{col}' with 0.")
+
+            nan_count = df[col].isna().sum()
+            logger.info(f"Column '{col}' has {nan_count} NaN values after replacement.")
+
+            df[col] = pd.to_numeric(df[col], errors='coerce')
+            df.dtypes
         else:
             logger.info(f"Column '{col}' has no empty strings.")
 
