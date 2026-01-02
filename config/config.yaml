@@ -1,0 +1,12 @@
+# config/config.yaml
+
+data:
+  # Προσοχή: Τα paths είναι σχετικά με το πού τρέχει το notebook
+  # Το notebook είναι στο folder /notebooks, άρα πάμε ένα πίσω (..) για να βρούμε το data
+  raw_path: "../data/raw/housing.csv"
+  processed_path: "../data/processed/housing_cleaned.csv"
+
+model:
+  target: "median_house_value"
+  test_size: 0.2
+  random_state: 42

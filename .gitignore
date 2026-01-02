@@ -1,0 +1,30 @@
+# --- Python & UV Basics ---
+__pycache__/
+*.py[cod]
+.venv/
+.env
+
+# --- Data Science (ΠΟΤΕ δεν ανεβάζουμε δεδομένα) ---
+data/
+data/raw/*
+data/processed/*
+!data/.gitkeep  # (Κρατάμε τους φακέλους άδειους αν χρειαστεί, αλλά όχι τα αρχεία)
+
+# --- Notebook Checkpoints (Σκουπίδια του Jupyter) ---
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/
+
+# --- IDE Settings (Δεν αφορούν άλλους) ---
+.vscode/
+.idea/
+.DS_Store
+
+# --- Models & Logs ---
+models/*.pkl
+models/*.h5
+mlruns/
+logs/
+
+# --- Τι ΚΡΑΤΑΜΕ (Σημαντικό) ---
+# Το uv.lock και το pyproject.toml ΤΑ ΘΕΛΟΥΜΕ στο git 
+# γιατί λένε στους άλλους πώς να στήσουν το project.
