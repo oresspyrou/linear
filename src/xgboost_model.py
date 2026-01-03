@@ -6,16 +6,16 @@ import sys
 import os
 import joblib
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error, r2_score, balanced_accuracy_score, roc_auc_score, make_scorer, confusion_matrix, plot_confusion_matrix  
+from sklearn.metrics import mean_squared_error, r2_score, balanced_accuracy_score, roc_auc_score, make_scorer, confusion_matrix 
 from sklearn.model_selection import GridSearchCV
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from src.logger_setup import setup_logger
 from src.validator import validate_input_file, validate_csv_columns
 from sklearn.model_selection import KFold, cross_val_score
+import optuna
 
 """
 XGBoost Model Module
-
 This module handles the training, evaluation, and configuration loading for XGBoost models
 on the California housing dataset. It includes data loading, model training with hyperparameter
 tuning, and performance metrics calculation.
@@ -46,6 +46,45 @@ def load_config() -> dict:
     except Exception as e:
         logger.error(f"Failed to load config: {e}")
         sys.exit(1)
+
+#---------------------------------------------------------------------------------------------
+
+def objective(trial, X, y, config):
+    """
+    Η συνάρτηση που καλεί η Optuna για να βαθμολογήσει έναν συνδυασμό παραμέτρων.
+    """
+    space = config['optimization']['search_space']
+    
+    params = {
+        'objective': 'reg:squarederror',
+        'n_jobs': -1,
+        'random_state': config['model']['random_state'],
+    }
+
+    for param_name, bounds in space.items():
+        is_int = isinstance(bounds['low'], int) and isinstance(bounds['high'], int)
+        
+        if is_int:
+            params[param_name] = trial.suggest_int(param_name, **bounds)
+        else:
+            params[param_name] = trial.suggest_float(param_name, **bounds)
+
+    dtrain = xgb.DMatrix(X, label=y)
+    
+    cv_results = xgb.cv(
+        params,
+        dtrain,
+        num_boost_round=1000,
+        nfold=3,                    
+        metrics='rmse',
+        early_stopping_rounds=50,
+        seed=42,
+        verbose_eval=True
+    )
+
+    return cv_results['test-rmse-mean'].min()
+
+#---------------------------------------------------------------------------------------------  
 
 def train_model() -> None:
     """
@@ -130,25 +169,34 @@ def train_model() -> None:
 
     logger.info("Model training setup completed. Ready for training phase.")
     #---------------------------------------------------------------------------------------------------------------------------------------------
-    xgb_params = config['model']['params']
     logger.info("Running Internal XGBoost CV to find optimal trees...")
+    logger.info("PHASE 1: Searching for best structure with Optuna...")
+
+    study = optuna.create_study(direction='minimize')
+    study.optimize(lambda trial: objective(trial, X_train, y_train, config), n_trials=20)
+
+    best_params = study.best_params
+    logger.info(f"Phase 1 Complete. Best Params: {best_params}")
+
+    logger.info("PHASE 2: Refining with Low Learning Rate (0.01)...")
+
+    final_params = best_params.copy()
+    final_params['objective'] = 'reg:squarederror'
+    final_params['n_jobs'] = -1
+    final_params['learning_rate'] = 0.01
 
     dtrain = xgb.DMatrix(X_train, label=y_train)
-
-    params_copy = xgb_params.copy()
-    params_copy.pop('n_estimators', None) 
-    params_copy['objective'] = 'reg:squarederror'
-    params_copy['n_jobs'] = -1
-
+    
+    logger.info("Calculating optimal trees for slow learning rate...")
     cv_results = xgb.cv(
-        params_copy,
+        final_params,
         dtrain,
-        num_boost_round=1000,          
-        nfold=5,                        
-        metrics='rmse',                 
-        early_stopping_rounds=50,      
-        seed=random_state,
-        verbose_eval=True             
+        num_boost_round=5000,       
+        nfold=5,                    
+        metrics='rmse',
+        early_stopping_rounds=50,
+        seed=42,
+        verbose_eval=False
     )
 
     optimal_trees = cv_results.shape[0] 
@@ -157,13 +205,12 @@ def train_model() -> None:
     logger.info("Training final model with optimal trees...")
 
     clf_xgb = xgb.XGBRegressor(
-        **xgb_params,
+        **final_params,
         n_estimators=optimal_trees,
         random_state=random_state,
         objective='reg:squarederror'
     )
 
-    logger.info("Training final model...")
     clf_xgb.fit(X_train, y_train)
     
     #---------------------------------------------------------------------------------------------------------------------------------------------
