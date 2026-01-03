@@ -26,5 +26,5 @@ To project έχει βασιστεί στο dataset: California Housing Prices(K
 
 # Κλωνοποίηση του Repository
 ```bash
-git clone(https://github.com/oresspyrou/linear.git)
+git clone(https://github.com/oresspyrou/Xgboost-housing-valuation-pipeline.git)
 cd california-housing-project
