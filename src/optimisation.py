@@ -2,6 +2,7 @@ import xgboost as xgb
 import optuna
 import sys
 import mlflow
+from optuna.integration.mlflow import MLflowCallback
 
 class ModelOptimizer:
     def __init__(self, config, logger):
