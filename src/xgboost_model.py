@@ -11,6 +11,7 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from src.logger_setup import setup_logger
 from src.validator import validate_input_file, validate_csv_columns
+from sklearn.model_selection import KFold, cross_val_score
 
 """
 XGBoost Model Module
@@ -97,24 +98,66 @@ def train_model() -> None:
             logger.info(f"Column '{col}' has no empty strings.")
 
     logger.info("Dropping the target column from features")
-    x = df.drop(columns=[config['model']['target']], axis=1)
+    X = df.drop(columns=[config['model']['target']], axis=1)
     y = df[config['model']['target']]
     logger.info("Features and target variable separated.")
-    logger.info(f"Features shape: {x.shape}, Target shape: {y.shape}")
-    logger.info(f"Features preview:\n{x.head()}")
-
-    logger.info(f"Unique values in 'ocean_proximity': {x['ocean_proximity'].unique()}")
-
-    logger.info("Encoding categorical variables with OneHotEncoder...")
-    encoder = OneHotEncoder(sparse=False, drop='first')
-    encoded = encoder.fit_transform(x[['ocean_proximity']])
-    encoded_df = pd.DataFrame(encoded, columns=encoder.get_feature_names_out(['ocean_proximity']), index=x.index)
-    x = pd.concat([x.drop('ocean_proximity', axis=1), encoded_df], axis=1)
-    logger.info("Categorical encoding completed.")
-    logger.info(f"New features after encoding: {[col for col in x.columns if 'ocean_proximity' in col]}")
-    logger.info(f"Features shape after encoding: {x.shape}")
+    logger.info(f"Features shape: {X.shape}, Target shape: {y.shape}")
+    logger.info(f"Features preview:\n{X.head()}")
+    logger.info(f"Unique values in 'ocean_proximity': {X['ocean_proximity'].unique()}")
 
     logger.info("Splitting dataset into training and testing sets...")
     test_size = config['model']['test_size']
     random_state = config['model']['random_state']
-    X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=test_size, random_state=random_state)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state)
+
+    logger.info("Encoding categorical variables with OneHotEncoder...")
+    encoder = OneHotEncoder(sparse=False, drop='first')
+    encoder.fit(X_train[['ocean_proximity']])
+   
+    encoded_train = encoder.transform(X_train[['ocean_proximity']])
+    encoded_train_df = pd.DataFrame(encoded_train, columns=encoder.get_feature_names_out(['ocean_proximity']), index=X_train.index)
+    X_train = pd.concat([X_train.drop('ocean_proximity', axis=1), encoded_train_df], axis=1)
+    
+    encoded_test = encoder.transform(X_test[['ocean_proximity']])
+    encoded_test_df = pd.DataFrame(encoded_test, columns=encoder.get_feature_names_out(['ocean_proximity']), index=X_test.index)
+    X_test = pd.concat([X_test.drop('ocean_proximity', axis=1), encoded_test_df], axis=1)
+
+    logger.info("Categorical encoding completed.")
+    logger.info(f"New features after encoding: {[col for col in X_train.columns if 'ocean_proximity' in col]}")
+    logger.info(f"Training features shape: {X_train.shape}, Test features shape: {X_test.shape}")
+
+    logger.info(f"Unique values in target variable: {y.unique()}")
+
+    logger.info("Model training setup completed. Ready for training phase.")
+    xgb_params = config['model']['params']
+
+    clf_xgb = xgb.XGBRegressor(
+        n_estimators=xgb_params['n_estimators'],
+        max_depth=xgb_params['max_depth'],
+        learning_rate=xgb_params['learning_rate'],
+        subsample=xgb_params['subsample'],
+        colsample_bytree=xgb_params['colsample_bytree'],
+        objective='reg:squarederror',
+        n_jobs=xgb_params['n_jobs'],
+        random_state=random_state
+    )
+    
+    logger.info("Running Cross-Validation on Train set...")
+    scores = cross_val_score(clf_xgb, X_train, y_train, cv=5, scoring='r2')
+    logger.info(f"Avg Cross-Val R2: {scores.mean():.4f}")
+
+    logger.info("Training final model...")
+    clf_xgb.fit(X_train, y_train)
+
+    logger.info("Evaluating on Test Set...")
+    preds = clf_xgb.predict(X_test)
+
+    r2 = r2_score(y_test, preds)
+    rmse = np.sqrt(mean_squared_error(y_test, preds))
+
+    logger.info("--- RESULTS ---")
+    logger.info(f"R2 Score: {r2:.4f}")
+    logger.info(f"RMSE: ${rmse:,.2f}")
+
+    if __name__ == "__main__":
+        train_model()

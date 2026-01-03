@@ -1,13 +1,17 @@
-
-
 data:
   raw_path: "data/raw/housing.csv"
   processed_path: "data/processed/housing_cleaned.csv"
 
 model:
+  name: "xgboost_regressor"
   target: "median_house_value"
   test_size: 0.2
   random_state: 42
-
-  logging:
-  log_dir: "logs" 
+  
+  params:
+    n_estimators: 500    
+    max_depth: 6            
+    learning_rate: 0.05     
+    subsample: 0.8          
+    colsample_bytree: 0.8   
+    n_jobs: -1              
