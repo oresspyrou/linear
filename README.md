@@ -1,30 +1,28 @@
-# California Housing Prediction Pipeline (MLOps Ready)
+# 🏡 California Housing Prediction Pipeline (MLOps Ready)
 
-Ένα ολοκληρωμένο Machine Learning Pipeline για την πρόβλεψη τιμών κατοικιών στην Καλιφόρνια. Το project ακολουθεί αυστηρές αρχές **Separation of Concerns** και ενσωματώνει πλήρως πρακτικές **MLOps** χρησιμοποιώντας **MLflow** για Experiment Tracking και Model Registry, καθώς και **Optuna** για αυτοματοποιημένο Hyperparameter Tuning.
+A comprehensive Machine Learning Pipeline for predicting housing prices in California. This project adheres to strict **Separation of Concerns** principles and fully integrates **MLOps** best practices using **MLflow** for Experiment Tracking and Model Registry, as well as **Optuna** for automated Hyperparameter Tuning.
 
-To project έχει βασιστεί στο dataset: California Housing Prices(Kaggle - Cam Nugent)!
+## 🚀 Key Features
 
-# Βασικά Χαρακτηριστικά
+* **Modular Architecture**: Code is organized into distinct modules (`DataManager`, `Preprocessor`, `Optimizer`, `Trainer`) for maintainability and scalability.
+* **Automated Tuning**: Utilizes **Optuna** to find optimal XGBoost hyperparameters, with automatic logging of all trials.
+* **MLflow Integration**: Full experiment tracking (Parameters, Metrics, Artifacts, Models) and versioning of production-ready models.
+* **Robust Preprocessing**: Automatic handling of missing values and One-Hot Encoding, preserving the Encoder as an artifact for production inference.
+* **Advanced Training Strategy**: Two-phase training strategy (Optimization -> Retraining) with low Learning Rate and Early Stopping to maximize performance.
 
-* **Modular Architecture**: Ο κώδικας είναι διαχωρισμένος σε διακριτά modules (`DataManager`, `Preprocessor`, `Optimizer`, `Trainer`) για εύκολη συντήρηση και επεκτασιμότητα.
-* **Automated Tuning**: Χρήση της **Optuna** για την εύρεση των βέλτιστων υπερ-παραμέτρων του XGBoost, με τα αποτελέσματα να καταγράφονται αυτόματα.
-* **MLflow Integration**: Πλήρης καταγραφή πειραμάτων (Parameters, Metrics, Artifacts, Models) και Versioning των παραγόμενων μοντέλων.
-* **Robust Preprocessing**: Αυτόματος χειρισμός missing values και One-Hot Encoding με αποθήκευση του Encoder για χρήση σε Production περιβάλλον.
-* **Advanced Training Strategy**: Στρατηγική εκπαίδευσης δύο φάσεων (Optimization -> Retraining) με χαμηλό Learning Rate και Early Stopping για μεγιστοποίηση της απόδοσης.
+## 📊 Results
 
-# Αποτελέσματα
+The model achieved excellent performance on the Test Set:
 
-Το μοντέλο πέτυχε εξαιρετική απόδοση στο Test Set:
-
-* **R² Score**: ~0.85 (Επεξήγηση του 85% της διακύμανσης των τιμών).
+* **R² Score**: ~0.85 (Explains 85% of price variance).
 * **RMSE**: ~$44,300.
-* **Top Features**: Τοποθεσία (`INLAND`) και Εισόδημα (`median_income`), επιβεβαιώνοντας την εγκυρότητα του μοντέλου βάσει της οικονομικής θεωρίας.
+* **Top Features**: Location (`INLAND`) and Income (`median_income`), confirming the model's alignment with economic theory.
 
-# Εγκατάσταση
+## 🛠️ Installation
 
-Το project απαιτεί **Python 3.12+**.
+The project requires **Python 3.12+**.
 
-# Κλωνοποίηση του Repository
+### 1. Clone Repository
 ```bash
 git clone(https://github.com/oresspyrou/Xgboost-housing-valuation-pipeline.git)
 cd california-housing-project
