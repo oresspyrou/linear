@@ -65,10 +65,10 @@ class ModelOptimizer:
         mlflow_callback = MLflowCallback(
             tracking_uri=mlflow.get_tracking_uri(),
             metric_name="rmse",
-            nest_trials=True  # Σημαντικό: Τα trials θα είναι nested κάτω από το main run
+            create_experiment=False,
+            mlflow_kwargs={"nested": True}
         )
-
-        # direction='minimize' -> Θέλουμε να ελαχιστοποιήσουμε το RMSE
+        
         study = optuna.create_study(direction='minimize')
 
         # Χρησιμοποιούμε lambda για να περάσουμε το self.objective με τα X, y

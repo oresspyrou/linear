@@ -37,7 +37,7 @@ preprocessing:
   categorical_columns:
     - "ocean_proximity"
 
-  mlflow:
-    tracking_uri: "mlruns"  # Ή "http://localhost:5000" αν έχεις server
-    experiment_name: "California_Housing_XGBoost"
-    run_name: "Pipeline_Run"
+mlflow:
+  tracking_uri: "mlruns"  # Ή "http://localhost:5000" αν έχεις server
+  experiment_name: "California_Housing_XGBoost"
+  run_name: "Pipeline_Run"
