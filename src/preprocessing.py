@@ -61,9 +61,22 @@ class Preprocessor:
         encoded_df = pd.DataFrame(
             encoded_array,
             columns=self.encoder.get_feature_names_out(valid_cols),
-            index=X_test.index # Κρατάμε το index!
+            index=X_test.index 
         )
         
         X_final = pd.concat([X_test.drop(valid_cols, axis=1), encoded_df], axis=1)
         
         return X_final
+
+    def save(self, directory="models", filename="encoder.pkl"):
+        """
+        Αποθηκεύει τον εκπαιδευμένο encoder για μελλοντική χρήση.
+        """
+        os.makedirs(directory, exist_ok=True)
+        filepath = os.path.join(directory, filename)
+        
+        try:
+            joblib.dump(self.encoder, filepath)
+            self.logger.info(f"Encoder saved successfully at: {filepath}")
+        except Exception as e:
+            self.logger.error(f"Failed to save encoder: {e}")
