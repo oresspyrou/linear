@@ -7,11 +7,9 @@ model:
   test_size: 0.2
   random_state: 42
 
-# ΝΕΑ ΕΝΟΤΗΤΑ: Εδώ ορίζουμε τα όρια της αναζήτησης
 optimization:
-  n_trials: 20  # Πόσες φορές θα τρέξει η Optuna
+  n_trials: 20  
   
-  # Τα όρια για κάθε παράμετρο
   search_space:
     max_depth: 
       low: 3

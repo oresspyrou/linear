@@ -28,16 +28,13 @@ class DataManager:
             self.logger.error(f"Failed to load dataset: {e}")
             sys.exit(1) 
 
-        # 1. Καθαρισμός ocean_proximity (αν υπάρχει)
         if 'ocean_proximity' in df.columns:
             df['ocean_proximity'] = df['ocean_proximity'].str.replace(' ', '_')
             df['ocean_proximity'] = df['ocean_proximity'].replace('', 'MISSING').fillna('MISSING')
 
-        # 2. Έλεγχος για κενά strings και μετατροπή σε numeric (όπου πρέπει)
         self.logger.info("Checking for empty strings and fixing data types...")
         
         for col in df.columns:
-            # Αγνοούμε την κατηγορική στήλη για να μην την χαλάσουμε
             if col == 'ocean_proximity':
                 continue
 
