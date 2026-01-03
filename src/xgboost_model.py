@@ -129,25 +129,44 @@ def train_model() -> None:
     logger.info(f"Unique values in target variable: {y.unique()}")
 
     logger.info("Model training setup completed. Ready for training phase.")
+    #---------------------------------------------------------------------------------------------------------------------------------------------
     xgb_params = config['model']['params']
+    logger.info("Running Internal XGBoost CV to find optimal trees...")
+
+    dtrain = xgb.DMatrix(X_train, label=y_train)
+
+    params_copy = xgb_params.copy()
+    params_copy.pop('n_estimators', None) 
+    params_copy['objective'] = 'reg:squarederror'
+    params_copy['n_jobs'] = -1
+
+    cv_results = xgb.cv(
+        params_copy,
+        dtrain,
+        num_boost_round=1000,          
+        nfold=5,                        
+        metrics='rmse',                 
+        early_stopping_rounds=50,      
+        seed=random_state,
+        verbose_eval=True             
+    )
+
+    optimal_trees = cv_results.shape[0] 
+    logger.info(f"Smart Training determined optimal n_estimators: {optimal_trees}")
+
+    logger.info("Training final model with optimal trees...")
 
     clf_xgb = xgb.XGBRegressor(
-        n_estimators=xgb_params['n_estimators'],
-        max_depth=xgb_params['max_depth'],
-        learning_rate=xgb_params['learning_rate'],
-        subsample=xgb_params['subsample'],
-        colsample_bytree=xgb_params['colsample_bytree'],
-        objective='reg:squarederror',
-        n_jobs=xgb_params['n_jobs'],
-        random_state=random_state
+        **xgb_params,
+        n_estimators=optimal_trees,
+        random_state=random_state,
+        objective='reg:squarederror'
     )
-    
-    logger.info("Running Cross-Validation on Train set...")
-    scores = cross_val_score(clf_xgb, X_train, y_train, cv=5, scoring='r2')
-    logger.info(f"Avg Cross-Val R2: {scores.mean():.4f}")
 
     logger.info("Training final model...")
     clf_xgb.fit(X_train, y_train)
+    
+    #---------------------------------------------------------------------------------------------------------------------------------------------
 
     logger.info("Evaluating on Test Set...")
     preds = clf_xgb.predict(X_test)
