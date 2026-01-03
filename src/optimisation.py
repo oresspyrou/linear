@@ -1,6 +1,7 @@
 import xgboost as xgb
 import optuna
 import sys
+import mlflow
 
 class ModelOptimizer:
     def __init__(self, config, logger):
@@ -59,15 +60,26 @@ class ModelOptimizer:
         """
         n_trials = self.config['optimization']['n_trials']
         self.logger.info(f"PHASE 1: Starting Optuna Optimization ({n_trials} trials)...")
+        
+        mlflow_callback = MLflowCallback(
+            tracking_uri=mlflow.get_tracking_uri(),
+            metric_name="rmse",
+            nest_trials=True  # Σημαντικό: Τα trials θα είναι nested κάτω από το main run
+        )
 
         # direction='minimize' -> Θέλουμε να ελαχιστοποιήσουμε το RMSE
         study = optuna.create_study(direction='minimize')
 
         # Χρησιμοποιούμε lambda για να περάσουμε το self.objective με τα X, y
-        study.optimize(lambda trial: self.objective(trial, X, y), n_trials=n_trials)
+        study.optimize(
+            lambda trial: self.objective(trial, X, y), 
+            n_trials=n_trials,
+            callbacks=[mlflow_callback])
 
-        self.logger.info("✨ Phase 1 Complete.")
+        self.logger.info("Phase 1 Complete.")
         self.logger.info(f"Best Score (RMSE): {study.best_value:.4f}")
         self.logger.info(f"Best Params found: {study.best_params}")
+
+        mlflow.log_params(study.best_params)
 
         return study.best_params

@@ -3,6 +3,7 @@ import joblib
 import os
 import numpy as np
 from sklearn.metrics import mean_squared_error, r2_score
+import mlflow
 
 class XGBoostTrainer:
     def __init__(self, config, logger):
@@ -49,6 +50,8 @@ class XGBoostTrainer:
         self.optimal_trees = cv_results.shape[0]
         self.logger.info(f"Optimal Trees found: {self.optimal_trees}")
 
+        mlflow.xgboost.autolog(importance_types=['weight', 'gain'])
+
         self.logger.info(f"Training final model on ALL training data with {self.optimal_trees} trees...")
         
         self.model = xgb.XGBRegressor(
@@ -77,4 +80,38 @@ class XGBoostTrainer:
         self.logger.info(f"RMSE: {rmse:,.4f}")
         self.logger.info(f"R2 Score: {r2:.4f}")
 
+        mlflow.log_metric("test_rmse", rmse)
+        mlflow.log_metric("test_r2", r2)
+
         return {'rmse': rmse, 'r2': r2}
+
+    def save_model(self, filename="xgboost_final.pkl"):
+        """
+        Αποθηκεύει το μοντέλο τοπικά και το καταχωρεί στο MLflow Registry.
+        """
+        if self.model is None:
+            self.logger.warning("No model to save.")
+            return
+
+        models_dir = "models"
+        os.makedirs(models_dir, exist_ok=True)
+        filepath = os.path.join(models_dir, filename)
+        
+        try:
+            joblib.dump(self.model, filepath)
+            self.logger.info(f"Model saved locally to: {filepath}")
+        except Exception as e:
+            self.logger.error(f"Failed to save local model: {e}")
+
+        self.logger.info("Registering model to MLflow...")
+        
+        try:
+            mlflow.xgboost.log_model(
+                xgb_model=self.model, 
+                artifact_path="model", 
+                registered_model_name="CaliforniaHousing_Production_Model"
+            )
+            self.logger.info("Model successfully registered in MLflow.")
+            
+        except Exception as e:
+            self.logger.warning(f"Failed to register model to MLflow: {e}")
