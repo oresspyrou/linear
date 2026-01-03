@@ -1,6 +1,6 @@
 import sys
 import pandas as pd
-import numpy as np
+#import numpy as np
 from sklearn.model_selection import train_test_split
 
 class DataManager:
@@ -66,7 +66,9 @@ class DataManager:
 
         self.logger.info("Features and target variable separated.")
         self.logger.info(f"Final Features shape: {X.shape}, Target shape: {y.shape}")
-        
+        self.logger.info(f"Features preview:\n{X.head()}")
+        self.logger.info(f"Unique values in 'ocean_proximity': {X['ocean_proximity'].unique()}")
+
         return X, y
 
     def split_data(self, X, y):

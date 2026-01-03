@@ -34,3 +34,7 @@ optimization:
     reg_lambda:
       low: 0.0
       high: 10.0         
+
+preprocessing:
+  categorical_columns:
+    - "ocean_proximity"
