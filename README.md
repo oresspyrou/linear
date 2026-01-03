@@ -2,6 +2,8 @@
 
 Ένα ολοκληρωμένο Machine Learning Pipeline για την πρόβλεψη τιμών κατοικιών στην Καλιφόρνια. Το project ακολουθεί αυστηρές αρχές **Separation of Concerns** και ενσωματώνει πλήρως πρακτικές **MLOps** χρησιμοποιώντας **MLflow** για Experiment Tracking και Model Registry, καθώς και **Optuna** για αυτοματοποιημένο Hyperparameter Tuning.
 
+To project έχει βασιστεί στο dataset: California Housing Prices(Kaggle - Cam Nugent)!
+
 # Βασικά Χαρακτηριστικά
 
 * **Modular Architecture**: Ο κώδικας είναι διαχωρισμένος σε διακριτά modules (`DataManager`, `Preprocessor`, `Optimizer`, `Trainer`) για εύκολη συντήρηση και επεκτασιμότητα.
